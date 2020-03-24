@@ -1,0 +1,8 @@
+C:\Users\mustapha.omotunwase\Documents\OTPService\OTP.Core\bin\Debug\netcoreapp3.1\OTP.Core.deps.json
+C:\Users\mustapha.omotunwase\Documents\OTPService\OTP.Core\bin\Debug\netcoreapp3.1\OTP.Core.dll
+C:\Users\mustapha.omotunwase\Documents\OTPService\OTP.Core\bin\Debug\netcoreapp3.1\OTP.Core.pdb
+C:\Users\mustapha.omotunwase\Documents\OTPService\OTP.Core\obj\Debug\netcoreapp3.1\OTP.Core.csprojAssemblyReference.cache
+C:\Users\mustapha.omotunwase\Documents\OTPService\OTP.Core\obj\Debug\netcoreapp3.1\OTP.Core.AssemblyInfoInputs.cache
+C:\Users\mustapha.omotunwase\Documents\OTPService\OTP.Core\obj\Debug\netcoreapp3.1\OTP.Core.AssemblyInfo.cs
+C:\Users\mustapha.omotunwase\Documents\OTPService\OTP.Core\obj\Debug\netcoreapp3.1\OTP.Core.dll
+C:\Users\mustapha.omotunwase\Documents\OTPService\OTP.Core\obj\Debug\netcoreapp3.1\OTP.Core.pdb

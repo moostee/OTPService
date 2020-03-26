@@ -290,7 +290,7 @@ namespace OTP.Core.Data
         {
             get
             {
-                return UMSPoco.DbFactory.GetDatabase();
+                return OTPPoco.DbFactory.GetDatabase();
             }
         }
 

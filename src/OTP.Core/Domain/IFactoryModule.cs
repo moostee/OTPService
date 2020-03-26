@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using OTP.Core.Domain.Factory.OTP;
 
 namespace OTP.Core.Domain
 {
     public interface IFactoryModule
     {
+        AppFactory Apps { get; }
+        OtpFactory Otps { get; }
+        OtpTypeFactory OtpTypes { get; }
     }
 }

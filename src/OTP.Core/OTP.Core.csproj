@@ -6,12 +6,6 @@
 
   <ItemGroup>
     <Folder Include="Common\" />
-    <Folder Include="Data\OTP\" />
-    <Folder Include="Domain\Entity\OTP\" />
-    <Folder Include="Domain\Factory\OTP\" />
-    <Folder Include="Domain\Form\OTP\" />
-    <Folder Include="Domain\Model\OTP\" />
-    <Folder Include="Logic\OTP\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,6 +13,10 @@
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="NPoco" Version="4.0.2" />
     <PackageReference Include="System.Linq.Dynamic.Core" Version="1.0.22" />

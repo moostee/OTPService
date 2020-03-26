@@ -6,11 +6,17 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
+using OTP.Core.Common;
+using OTP.Core.Data;
+using OTP.Core.Domain;
 using OTP.Core.Domain.Model.Helper;
+using OTP.Core.Logic;
 using OTP.Service.Middlewares;
 
 namespace OTPService
@@ -31,7 +37,45 @@ namespace OTPService
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddCors(options =>
+            {
+                options.AddPolicy(MyAllowSpecificOrigins,
+                builder =>
+                {
+                    builder
+                    .AllowAnyOrigin()
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .WithExposedHeaders("X-Pagination", "www-authenticate")
+                    .SetPreflightMaxAge(TimeSpan.FromSeconds(86400));
+                });
+            });
+
+            connectionString = Configuration.GetConnectionString("dbconn");
+            services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+                    options.JsonSerializerOptions.PropertyNamingPolicy = null;
+                });
+
+            services.AddHttpContextAccessor();
+            services.AddDbContext<OTPContext>(options =>
+                    options.UseSqlServer(connectionString));
+
+            //Add swagger
+            services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
+
+            services.AddSwaggerGen(x =>
+            {
+                x.SwaggerDoc("v1", new OpenApiInfo() { Title = "OTP Service", Version = "V1" });
+            });
+            AutoMapperConfig.RegisterMappings();
+            OTPPoco.Setup(connectionString);
+
+            services.AddTransient<IFactoryModule, FactoryModule>();
+            services.AddTransient<ILogicModule, LogicModule>();
+            services.AddTransient<IDataModule, DataModule>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

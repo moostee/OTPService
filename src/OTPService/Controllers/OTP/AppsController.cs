@@ -124,5 +124,63 @@ namespace OTP.Service.Controllers.OTP
             }
         }
 
+        /// <summary>
+        /// Update App
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="form"></param>
+        /// <returns></returns>
+        [Route("Update")]
+        [HttpPost]
+        [Produces(typeof(AppModel))]
+        public IActionResult Update(int id, AppForm form)
+        {
+            try
+            {
+                var model = Logic.AppLogic.Create(form);
+                if (id != model.Id)
+                    return BadRequest(SerializeUtility.SerializeJSON(new { Message = "Route Parameter does not match model ID" }));
+                var found = Logic.AppLogic.Get(id);
+                if (found == null)
+                    return NotFound(SerializeUtility.SerializeJSON(new { Message = "App not found" }));
+                var check = Logic.AppLogic.UpdateExists(model);
+                if (check)
+                    return BadRequest(SerializeUtility.SerializeJSON(new { Message = "App configuration already exists" }));
+                var dto = Logic.AppLogic.Update(found, model,
+                    "Name,AppSecret,OtpTypeId,OtpLength,HasExpiry,ExpiryPeriod,RecordStatus");
+                return Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex);
+                return BadRequest(SerializeUtility.SerializeJSON(new { Message = ex.Message }));
+            }
+        }
+
+        /// <summary>
+        /// Delete App
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [Route("Delete")]
+        [HttpPost]
+        [Produces(typeof(AppModel))]
+        public IActionResult Delete(int id)
+        {
+            try
+            {
+                var found = Logic.AppLogic.Get(id);
+                if (found == null)
+                    return NotFound(SerializeUtility.SerializeJSON(new { Message = "App not found" }));
+                Logic.AppLogic.Delete(found);
+                return Ok(found);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex);
+                return BadRequest(SerializeUtility.SerializeJSON(new { Message = ex.Message }));
+            }
+        }
+
     }
 }

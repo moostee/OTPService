@@ -9628,11 +9628,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\mustapha.omotunwase\\Documents\\OTPService\\OTPService\\OTP.Service.csproj",
+      "projectUniqueName": "C:\\Users\\mustapha.omotunwase\\Documents\\OTPService\\src\\OTPService\\OTP.Service.csproj",
       "projectName": "OTP.Service",
-      "projectPath": "C:\\Users\\mustapha.omotunwase\\Documents\\OTPService\\OTPService\\OTP.Service.csproj",
+      "projectPath": "C:\\Users\\mustapha.omotunwase\\Documents\\OTPService\\src\\OTPService\\OTP.Service.csproj",
       "packagesPath": "C:\\Users\\mustapha.omotunwase\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\mustapha.omotunwase\\Documents\\OTPService\\OTPService\\obj\\",
+      "outputPath": "C:\\Users\\mustapha.omotunwase\\Documents\\OTPService\\src\\OTPService\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\mustapha.omotunwase\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -9648,8 +9648,8 @@
       "frameworks": {
         "netcoreapp3.1": {
           "projectReferences": {
-            "C:\\Users\\mustapha.omotunwase\\Documents\\OTPService\\OTP.Core\\OTP.Core.csproj": {
-              "projectPath": "C:\\Users\\mustapha.omotunwase\\Documents\\OTPService\\OTP.Core\\OTP.Core.csproj"
+            "C:\\Users\\mustapha.omotunwase\\Documents\\OTPService\\src\\OTP.Core\\OTP.Core.csproj": {
+              "projectPath": "C:\\Users\\mustapha.omotunwase\\Documents\\OTPService\\src\\OTP.Core\\OTP.Core.csproj"
             }
           }
         }

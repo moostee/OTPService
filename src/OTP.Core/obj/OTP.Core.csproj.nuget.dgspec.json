@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\mustapha.omotunwase\\Documents\\OTPService\\OTP.Core\\OTP.Core.csproj": {}
+    "C:\\Users\\mustapha.omotunwase\\Documents\\OTPService\\src\\OTP.Core\\OTP.Core.csproj": {}
   },
   "projects": {
-    "C:\\Users\\mustapha.omotunwase\\Documents\\OTPService\\OTP.Core\\OTP.Core.csproj": {
+    "C:\\Users\\mustapha.omotunwase\\Documents\\OTPService\\src\\OTP.Core\\OTP.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\mustapha.omotunwase\\Documents\\OTPService\\OTP.Core\\OTP.Core.csproj",
+        "projectUniqueName": "C:\\Users\\mustapha.omotunwase\\Documents\\OTPService\\src\\OTP.Core\\OTP.Core.csproj",
         "projectName": "OTP.Core",
-        "projectPath": "C:\\Users\\mustapha.omotunwase\\Documents\\OTPService\\OTP.Core\\OTP.Core.csproj",
+        "projectPath": "C:\\Users\\mustapha.omotunwase\\Documents\\OTPService\\src\\OTP.Core\\OTP.Core.csproj",
         "packagesPath": "C:\\Users\\mustapha.omotunwase\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\mustapha.omotunwase\\Documents\\OTPService\\OTP.Core\\obj\\",
+        "outputPath": "C:\\Users\\mustapha.omotunwase\\Documents\\OTPService\\src\\OTP.Core\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\mustapha.omotunwase\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -53,6 +53,12 @@
             "Microsoft.EntityFrameworkCore.SqlServer": {
               "target": "Package",
               "version": "[3.1.2, )"
+            },
+            "Microsoft.EntityFrameworkCore.Tools": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[3.1.3, )"
             },
             "NPoco": {
               "target": "Package",

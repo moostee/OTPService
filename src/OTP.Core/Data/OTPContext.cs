@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using OTP.Core.Domain.Entity.OTP;
 
 namespace OTP.Core.Data
 {
@@ -11,6 +12,16 @@ namespace OTP.Core.Data
             _options = options;
         }
 
+        public OTPContext()
+        {
+
+        }
+
+        public DbSet<Otp> Otps { get; set; }
+
+        public DbSet<OtpType> OtpTypes { get; set; }
+
+        public DbSet<App> Apps { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (_options == null)

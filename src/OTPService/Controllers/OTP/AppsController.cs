@@ -8,6 +8,7 @@ using OTP.Core.Common;
 using OTP.Core.Domain.Form.OTP;
 using OTP.Core.Domain.Model.OTP;
 using OTP.Core.Logic;
+using OTP.Core.UI;
 
 namespace OTP.Service.Controllers.OTP
 {
@@ -71,6 +72,55 @@ namespace OTP.Service.Controllers.OTP
             {
                 Log.Error(ex);
                 return BadRequest(SerializeUtility.SerializeJSON(new { Message = ex.Message }));
+            }
+        }
+
+        /// <summary>
+        /// Search, Page, filter and Shaped Apps
+        /// </summary>
+        /// <param name="sort"></param>
+        /// <param name="name"></param>
+        /// <param name="appSecret"></param>
+        /// <param name="otpTypeId"></param>
+        /// <param name="otpLength"></param>
+        /// <param name="hasExpiry"></param>
+        /// <param name="expiryPeriod"></param>
+        /// <param name="page"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="fields"></param>
+        /// <param name="draw"></param>
+        /// <returns></returns>
+        [Produces(typeof(IEnumerable<AppModel>))]
+        [Route("Search", Name = "AppApi")]
+        [HttpGet]
+        public IActionResult Get(string sort = "Id", string name = "", string appSecret = "", int otpTypeId = 0, int otpLength = 0, bool? hasExpiry = null, TimeSpan? expiryPeriod = null, long page = 1, long pageSize = 10, string fields = "", int draw = 1)
+        {
+            try
+            {
+                var items = Logic.AppLogic.SearchView(name, appSecret, otpTypeId, otpLength, hasExpiry, expiryPeriod, page, pageSize, sort);
+
+                if (page > items.TotalPages) page = items.TotalPages;
+                var jo = new JObjectHelper();
+                jo.Add("name", name);
+                jo.Add("appSecret", appSecret);
+                jo.Add("otpTypeId", otpTypeId);
+                jo.Add("otpLength", otpLength);
+                jo.Add("hasExpiry", hasExpiry);
+                jo.Add("expiryPeriod", expiryPeriod.ToString());
+
+                jo.Add("fields", fields);
+                jo.Add("sort", sort);
+                var linkBuilder = new PageLinkBuilder(jo, page, pageSize, items.TotalItems, draw);
+                AddHeader("X-Pagination", linkBuilder.PaginationHeader);
+                var dto = new List<AppModel>();
+                if (items.TotalItems <= 0) return Ok(dto);
+                var dtos = items.Items.ShapeList(fields);
+                return Ok(dtos);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex);
+                return BadRequest(ex.Message);
             }
         }
 

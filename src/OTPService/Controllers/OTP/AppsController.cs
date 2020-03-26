@@ -48,5 +48,31 @@ namespace OTP.Service.Controllers.OTP
             }
         }
 
+        /// <summary>
+        /// Get App by ID
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("Detail")]
+        [Produces(typeof(AppModel))]
+        public async Task<IActionResult> Get(int id)
+        {
+            try
+            {
+                var item = await Logic.AppLogic.GetModel(id);
+                if (item == null)
+                {
+                    return NotFound(SerializeUtility.SerializeJSON(new { Message = "App not found" }));
+                }
+                return Ok(item);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex);
+                return BadRequest(SerializeUtility.SerializeJSON(new { Message = ex.Message }));
+            }
+        }
+
     }
 }

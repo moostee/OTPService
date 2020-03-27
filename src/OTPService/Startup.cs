@@ -70,6 +70,7 @@ namespace OTPService
             {
                 x.SwaggerDoc("v1", new OpenApiInfo() { Title = "OTP Service", Version = "V1" });
             });
+
             AutoMapperConfig.RegisterMappings();
             OTPPoco.Setup(connectionString);
 

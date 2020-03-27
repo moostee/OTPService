@@ -1,24 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OTP.Core.Common;
 using OTP.Core.Domain.Form.OTP;
+using OTP.Core.Domain.Model.Helper;
 using OTP.Core.Domain.Model.OTP;
 using OTP.Core.Logic;
 using OTP.Core.UI;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace OTP.Service.Controllers.OTP
 {
     public class OtpsController : BaseApiController
     {
         private readonly ILogicModule Logic;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private string _clientSecret;
 
-        public OtpsController(ILogicModule logic)
+        public OtpsController(ILogicModule logic, IHttpContextAccessor httpContextAccessor)
         {
             Logic = logic;
+            _httpContextAccessor = httpContextAccessor;
+            _clientSecret = _httpContextAccessor.HttpContext.Request.Headers["X-ClientSecret"];
         }
         /// <summary>
         /// Search, Page, filter and Shaped Otps
@@ -61,7 +66,7 @@ namespace OTP.Service.Controllers.OTP
 
                 jo.Add("fields", fields);
                 jo.Add("sort", sort);
-                var linkBuilder = new PageLinkBuilder( jo, page, pageSize, items.TotalItems, draw);
+                var linkBuilder = new PageLinkBuilder(jo, page, pageSize, items.TotalItems, draw);
                 AddHeader("X-Pagination", linkBuilder.PaginationHeader);
                 var dto = new List<OtpModel>();
                 if (items.TotalItems <= 0) return Ok(dto);
@@ -111,22 +116,33 @@ namespace OTP.Service.Controllers.OTP
         [Produces(typeof(OtpModel))]
         public async Task<IActionResult> Create(OtpForm form)
         {
+            var response = Utilities.InitializeResponse();
             try
             {
+                var appModel = Logic.AppLogic.SearchView("", _clientSecret).Items.FirstOrDefault();
+                var app = Logic.AppLogic.Create(appModel);
                 var model = Logic.OtpLogic.Create(form);
-                var check = Logic.OtpLogic.CreateExists(model);
-                if (check)
+                var (hasError, errorMessage) = Logic.OtpLogic.ValidateAppOtpType(model, app.OtpTypeId);
+                if (hasError) return BadRequest(Utilities.UnsuccessfulResponse(response, errorMessage));
+                var otpExists = Logic.OtpLogic.Search(app.Id, model.AppFeature, model.PhoneNumber, model.Email, model.DialCode, 0, false).FirstOrDefault();
+                if (otpExists == null)
                 {
-                    return BadRequest(SerializeUtility.SerializeJSON(new { Message = "Otp already exists" }));
+                    response.Data = await Logic.OtpLogic.ProcessOtpCreation(model, app);
                 }
-                var dto = await Logic.OtpLogic.Insert(model);
-                return Ok(dto);
+                else
+                {
+                    if (app.HasExpiry)
+                        otpExists.ExpiryDate = DateTime.UtcNow.Add(app.ExpiryPeriod);
+                    Logic.OtpLogic.Update(otpExists);
+                    response.Data = await Logic.OtpLogic.ProcessOtpCreation(model, app);
+                }
             }
             catch (Exception ex)
             {
                 Log.Error(ex);
-                return BadRequest(ex.Message);
+                return BadRequest(Utilities.CatchException(response));
             }
+            return Ok(response);
         }
 
 
@@ -141,11 +157,15 @@ namespace OTP.Service.Controllers.OTP
         [Produces(typeof(OtpModel))]
         public IActionResult Update(int id, OtpForm form)
         {
+            var response = Utilities.InitializeResponse();
             try
             {
+                var app = Logic.AppLogic.Search("", _clientSecret).FirstOrDefault();
+
+                form.Id = id;
                 var model = Logic.OtpLogic.Create(form);
                 if (id != model.Id)
-                    return BadRequest(SerializeUtility.SerializeJSON(new { Message = "Route Parameter does not match model ID" }));
+                    return BadRequest(Utilities.UnsuccessfulResponse(response, "Route Parameter does not match model ID"));
                 var found = Logic.OtpLogic.Get(id);
                 if (found == null)
                     return NotFound(SerializeUtility.SerializeJSON(new { Message = "Otp not found" }));
@@ -185,6 +205,33 @@ namespace OTP.Service.Controllers.OTP
             {
                 Log.Error(ex);
                 return BadRequest(SerializeUtility.SerializeJSON(new { Message = ex.Message }));
+            }
+        }
+
+        [Route("Use")]
+        [HttpPost]
+        [Produces(typeof(OtpModel))]
+        public IActionResult UseOtp(UseOtpForm otp)
+        {
+            var response = Utilities.InitializeResponse();
+            try
+            {
+                var appModel = Logic.AppLogic.SearchView("", _clientSecret).Items.FirstOrDefault();
+                var app = Logic.AppLogic.Create(appModel);
+                var otpExists = Logic.OtpLogic.Search(app.Id, "", "", "", "", otp.OtpCode, false).FirstOrDefault();
+                if (otpExists == null)
+                    return NotFound(Utilities.UnsuccessfulResponse(response,"Otp not found / Otp has been used"));
+                if (app.HasExpiry)
+                {
+                    if (DateTime.UtcNow > otpExists.ExpiryDate) return BadRequest(Utilities.UnsuccessfulResponse(response, "Otp has expired"));
+                }                    
+                Logic.OtpLogic.Update(otpExists);
+                return Ok(otpExists);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex);
+                return BadRequest(Utilities.CatchException(response));
             }
         }
     }

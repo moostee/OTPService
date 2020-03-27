@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace OTP.Core.Domain.Form.OTP
@@ -12,10 +13,7 @@ namespace OTP.Core.Domain.Form.OTP
         /// <summary>
         /// 
         /// </summary>
-        public int AppId { get; set; }
-        /// <summary>
-        /// 
-        /// </summary>
+        [Required]
         public string AppFeature { get; set; }
         /// <summary>
         /// 
@@ -29,22 +27,13 @@ namespace OTP.Core.Domain.Form.OTP
         /// 
         /// </summary>
         public string DialCode { get; set; }
-        /// <summary>
-        /// 
-        /// </summary>
-        public int OtpCode { get; set; }
-        /// <summary>
-        /// 
-        /// </summary>
-        public bool IsUsed { get; set; }
-        /// <summary>
-        /// 
-        /// </summary>
-        public DateTime TimeUsed { get; set; }
-        /// <summary>
-        /// 
-        /// </summary>
-        public DateTime ExpiryDate { get; set; }
 
+    }
+
+    public class UseOtpForm
+    {
+        [Required]
+        [Range(1,int.MaxValue)]
+        public int OtpCode { get; set; }
     }
 }

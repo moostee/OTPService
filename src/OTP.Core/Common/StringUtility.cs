@@ -23,6 +23,47 @@ namespace OTP.Core.Common
             }
         }
 
+        public static string GenerateRandomOTP(int iOTPLength=4)
+
+        {
+            string[] saAllowedCharacters = { "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+            string sOTP = String.Empty;
+
+            string sTempChars = String.Empty;
+
+            Random rand = new Random();
+
+            for (int i = 0; i < iOTPLength; i++)
+
+            {
+
+                int p = rand.Next(0, saAllowedCharacters.Length);
+
+                sTempChars = saAllowedCharacters[rand.Next(0, saAllowedCharacters.Length)];
+
+                sOTP += sTempChars;
+
+            }
+
+            return sOTP;
+
+        }
+
+        public static bool IsMobile(string mobile)
+        {
+            var isOk = true;
+            if (mobile.Length != 11)
+            {
+                isOk = false;
+            }
+            return isOk;
+        }
+
+        public static string CleanPhone(string phone)
+        {
+            phone = phone.Replace("+", "");
+            return phone.Trim();
+        }
 
         /// <summary>
         /// 

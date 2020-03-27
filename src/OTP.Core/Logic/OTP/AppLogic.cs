@@ -100,7 +100,7 @@ namespace OTP.Core.Logic.OTP
         ///<param name="sort"></param>
         /// <returns></returns>
         public Page<AppModel> SearchView(string name = "", string appSecret = "", int otpTypeId = 0, int otpLength = 0, bool? hasExpiry = null, TimeSpan? expiryPeriod = null,
-            long page = 1, long pageSize = 10, string sort = "")
+            long page = 1, long pageSize = 10, string sort = "Id")
         {
             return Data.Apps.SearchView(name, appSecret, otpTypeId, otpLength, hasExpiry, expiryPeriod, page, pageSize, sort);
         }

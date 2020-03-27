@@ -1,6 +1,8 @@
-﻿using OTP.Core.Data;
+﻿using OTP.Core.Common;
+using OTP.Core.Data;
 using OTP.Core.Domain;
 using OTP.Core.Domain.Entity.OTP;
+using OTP.Core.Domain.Enum;
 using OTP.Core.Domain.Form.OTP;
 using OTP.Core.Domain.Model;
 using OTP.Core.Domain.Model.OTP;
@@ -194,17 +196,15 @@ namespace OTP.Core.Logic.OTP
         /// <param name="model"></param>
         /// <param name="check"></param>
         /// <returns></returns>
-        public async Task<OtpModel> Insert(OtpModel model, bool check = true)
+        public async Task<OtpModel> Insert(OtpModel model, App app)
         {
-            if (check)
-            {
-                var routeSearch = Data.Otps.ItemExists(model);
-                if (routeSearch)
-                {
-                    throw new Exception("Otp Name already exists");
-                }
-            }
             var entity = Factory.Otps.CreateEntity(model);
+            if (app.HasExpiry)
+            {
+                entity.ExpiryDate = DateTime.UtcNow.Add(app.ExpiryPeriod);
+            }
+            entity.AppId = app.Id;
+            entity.OtpCode = Convert.ToInt32(StringUtility.GenerateRandomOTP(app.OtpLength));
             entity.RecordStatus = Core.Domain.Enum.RecordStatus.Active;
             await Data.Otps.Insert(entity);
             return Factory.Otps.CreateModel(entity);
@@ -222,6 +222,13 @@ namespace OTP.Core.Logic.OTP
             return Factory.Otps.Patch(entity, model, fields);
         }
 
+        public async Task<OtpModel> ProcessOtpCreation(OtpModel otpModel, App app)
+        {
+            var model = await Insert(otpModel, app);
+            HasSentOtpBasedOnOtpType(model, app.OtpTypeId);
+            return model;
+        }
+
         /// <summary>
         /// Update Otp, with Patch Options Optional
         /// </summary>
@@ -229,12 +236,14 @@ namespace OTP.Core.Logic.OTP
         /// <param name="model"></param>
         /// <param name="fields"></param>
         /// <returns></returns>
-        public OtpModel Update(Otp entity, OtpModel model = null, string fields = "")
+        public OtpModel Update(Otp entity,OtpModel model = null, string fields = "")
         {
             if (model != null)
             {
                 entity = Patch(entity, model, fields);
             }
+            entity.IsUsed = true;
+            entity.TimeUsed = DateTime.UtcNow;
             return Factory.Otps.CreateModel(Data.Otps.UpdateNpoco(entity));
         }
 
@@ -246,6 +255,89 @@ namespace OTP.Core.Logic.OTP
         public bool UpdateExists(OtpModel model)
         {
             return Data.Otps.ItemExists(model, model.Id);
+        }
+
+
+        public (bool hasError, string errorMessage) ValidateAppOtpType(OtpModel otpModel, int otpTypeId)
+        {
+            bool hasError = false;
+            string errorMessage = string.Empty;
+            switch ((OtpTypes)otpTypeId)
+            {
+                case OtpTypes.Email:
+                    if (string.IsNullOrWhiteSpace(otpModel.Email))
+                    {
+                        hasError = true;
+                        errorMessage = "Email Address cannot be empty for your Otp type";
+                    }
+                    if (!StringUtility.IsEmail(otpModel.Email))
+                    {
+                        hasError = true;
+                        errorMessage = "Email Address not in the right format"; 
+                    }
+                    break;
+                case OtpTypes.PhoneNumber:
+                    if (string.IsNullOrWhiteSpace(otpModel.PhoneNumber))
+                    {
+                        hasError = true;
+                        errorMessage = "Mobile cannot be empty for your Otp type";
+                    }
+                    if (!StringUtility.IsMobile(otpModel.PhoneNumber))
+                    {
+                        hasError = true;
+                        errorMessage = "Mobile is not valid";
+                    }
+                    break;
+                case OtpTypes.PhoneNumber_Email:
+                    if (string.IsNullOrWhiteSpace(otpModel.Email) || string.IsNullOrWhiteSpace(otpModel.PhoneNumber))
+                    {
+                        hasError = true;
+                        errorMessage = "Email Address/ Phone Number cannot be empty for your Otp type";
+                    }
+                    if (!StringUtility.IsEmail(otpModel.Email))
+                    {
+                        hasError = true;
+                        errorMessage = "Email Address not in the right format";
+                    }
+                    if (!StringUtility.IsMobile(otpModel.PhoneNumber))
+                    {
+                        hasError = true;
+                        errorMessage = "Mobile is not a valid number";
+                    }
+                    break;
+                default:
+                    hasError = true;
+                    errorMessage = "Otp type invalid";
+                    break;
+
+            }
+            return (hasError, errorMessage);
+        }
+
+        public void SendEmail(string email) { }
+
+        public void SendSms(string sms) { }
+
+        public bool HasSentOtpBasedOnOtpType(OtpModel otp, int otpTypeId)
+        {
+            bool status = false;
+            switch ((OtpTypes)otpTypeId)
+            {
+                case OtpTypes.Email:
+                    SendEmail(otp.Email);
+                    break;
+                case OtpTypes.PhoneNumber:
+                    SendSms(otp.PhoneNumber);
+                    break;
+                case OtpTypes.PhoneNumber_Email:
+                    SendEmail(otp.Email);
+                    SendSms(otp.PhoneNumber);
+                    break;
+                default:
+                    status = false;
+                    break;
+            }
+            return status;
         }
 
     }

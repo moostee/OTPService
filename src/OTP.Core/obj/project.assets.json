@@ -5325,7 +5325,8 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\mustapha.omotunwase\\.nuget\\packages\\": {}
+    "C:\\Users\\mustapha.omotunwase\\.nuget\\packages\\": {},
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
   },
   "project": {
     "version": "1.0.0",
@@ -5336,6 +5337,9 @@
       "packagesPath": "C:\\Users\\mustapha.omotunwase\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\mustapha.omotunwase\\Documents\\OTPService\\src\\OTP.Core\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+      ],
       "configFilePaths": [
         "C:\\Users\\mustapha.omotunwase\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
@@ -5414,13 +5418,5 @@
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.100\\RuntimeIdentifierGraph.json"
       }
     }
-  },
-  "logs": [
-    {
-      "code": "Undefined",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "Problem reading the cache file C:\\Users\\mustapha.omotunwase\\Documents\\OTPService\\src\\OTP.Core\\obj\\OTP.Core.csproj.nuget.cache : Invalid property identifier character: <. Path 'version', line 3, position 0."
-    }
-  ]
+  }
 }

@@ -225,8 +225,8 @@ namespace OTP.Service.Controllers.OTP
                 {
                     if (DateTime.UtcNow > otpExists.ExpiryDate) return BadRequest(Utilities.UnsuccessfulResponse(response, "Otp has expired"));
                 }                    
-                Logic.OtpLogic.Update(otpExists);
-                return Ok(otpExists);
+                response.Data = Logic.OtpLogic.Update(otpExists);
+                return Ok(response);
             }
             catch (Exception ex)
             {

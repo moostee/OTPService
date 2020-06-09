@@ -204,7 +204,7 @@ namespace OTP.Core.Logic.OTP
                 entity.ExpiryDate = DateTime.UtcNow.Add(app.ExpiryPeriod);
             }
             entity.AppId = app.Id;
-            entity.OtpCode = Convert.ToInt32(StringUtility.GenerateRandomOTP(app.OtpLength));
+            entity.OtpCode = 123456;//Convert.ToInt32(StringUtility.GenerateRandomOTP(app.OtpLength));
             entity.RecordStatus = Core.Domain.Enum.RecordStatus.Active;
             await Data.Otps.Insert(entity);
             return Factory.Otps.CreateModel(entity);
@@ -244,7 +244,7 @@ namespace OTP.Core.Logic.OTP
             }
             entity.IsUsed = true;
             entity.TimeUsed = DateTime.UtcNow;
-            return Factory.Otps.CreateModel(Data.Otps.UpdateNpoco(entity));
+            return Factory.Otps.CreateModel(Data.Otps.Update(entity));
         }
 
         /// <summary>
@@ -281,11 +281,6 @@ namespace OTP.Core.Logic.OTP
                     {
                         hasError = true;
                         errorMessage = "Mobile cannot be empty for your Otp type";
-                    }
-                    if (!StringUtility.IsMobile(otpModel.PhoneNumber))
-                    {
-                        hasError = true;
-                        errorMessage = "Mobile is not valid";
                     }
                     break;
                 case OtpTypes.PhoneNumber_Email:

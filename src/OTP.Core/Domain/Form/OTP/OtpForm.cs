@@ -35,5 +35,13 @@ namespace OTP.Core.Domain.Form.OTP
         [Required]
         [Range(1,int.MaxValue)]
         public int OtpCode { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string Email { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string PhoneNumber { get; set; }
     }
 }

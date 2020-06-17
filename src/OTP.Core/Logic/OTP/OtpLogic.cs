@@ -258,47 +258,26 @@ namespace OTP.Core.Logic.OTP
         }
 
 
-        public (bool hasError, string errorMessage) ValidateAppOtpType(OtpModel otpModel, int otpTypeId)
+        public (bool hasError, string errorMessage) ValidateAppOtpType(string email,string phone, int otpTypeId)
         {
             bool hasError = false;
             string errorMessage = string.Empty;
             switch ((OtpTypes)otpTypeId)
             {
                 case OtpTypes.Email:
-                    if (string.IsNullOrWhiteSpace(otpModel.Email))
-                    {
-                        hasError = true;
-                        errorMessage = "Email Address cannot be empty for your Otp type";
-                    }
-                    if (!StringUtility.IsEmail(otpModel.Email))
-                    {
-                        hasError = true;
-                        errorMessage = "Email Address not in the right format"; 
-                    }
+                    if (string.IsNullOrWhiteSpace(email)) return (true, "Email Address cannot be empty for your Otp type");
+                    if (!StringUtility.IsEmail(email)) return (true, "Email Address not in the right format");
                     break;
                 case OtpTypes.PhoneNumber:
-                    if (string.IsNullOrWhiteSpace(otpModel.PhoneNumber))
+                    if (string.IsNullOrWhiteSpace(phone))
                     {
                         hasError = true;
                         errorMessage = "Mobile cannot be empty for your Otp type";
                     }
                     break;
                 case OtpTypes.PhoneNumber_Email:
-                    if (string.IsNullOrWhiteSpace(otpModel.Email) || string.IsNullOrWhiteSpace(otpModel.PhoneNumber))
-                    {
-                        hasError = true;
-                        errorMessage = "Email Address/ Phone Number cannot be empty for your Otp type";
-                    }
-                    if (!StringUtility.IsEmail(otpModel.Email))
-                    {
-                        hasError = true;
-                        errorMessage = "Email Address not in the right format";
-                    }
-                    if (!StringUtility.IsMobile(otpModel.PhoneNumber))
-                    {
-                        hasError = true;
-                        errorMessage = "Mobile is not a valid number";
-                    }
+                    if (string.IsNullOrWhiteSpace(email) && string.IsNullOrWhiteSpace(phone)) return (true, "Email Address And Phone Number cannot be empty for your Otp type");
+                    if (!string.IsNullOrWhiteSpace(email) && !StringUtility.IsEmail(email)) return (true, "Email Address not in the right format");
                     break;
                 default:
                     hasError = true;
@@ -325,8 +304,8 @@ namespace OTP.Core.Logic.OTP
                     SendSms(otp.PhoneNumber);
                     break;
                 case OtpTypes.PhoneNumber_Email:
-                    SendEmail(otp.Email);
-                    SendSms(otp.PhoneNumber);
+                    if (otp.Email != null) SendEmail(otp.Email);
+                    if (otp.PhoneNumber != null) SendSms(otp.PhoneNumber);
                     break;
                 default:
                     status = false;

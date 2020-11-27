@@ -46,5 +46,9 @@ namespace OTP.Core.Domain.Model.OTP
         /// </summary>
         public DateTime ExpiryDate { get; set; }
 
+        public string EmailSubject { get; set; }
+        public string Body { get; set; }
+        public string Firstname { get; set; }
+        public string EmailTemplate { get; set; }
     }
 }

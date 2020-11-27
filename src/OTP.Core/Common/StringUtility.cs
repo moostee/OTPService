@@ -48,21 +48,63 @@ namespace OTP.Core.Common
             return sOTP;
 
         }
-
-        public static bool IsMobile(string mobile)
-        {
-            var isOk = true;
-            if (mobile.Length != 11)
-            {
-                isOk = false;
-            }
-            return isOk;
-        }
-
         public static string CleanPhone(string phone)
         {
-            phone = phone.Replace("+", "");
-            return phone.Trim();
+            if (phone != null && phone[0].ToString() == "+")
+                return phone.Replace("+", "").Trim();
+            return phone;
+
+        }
+
+        public static bool IsValidDialCode(string mobileNumber)
+        {
+            var validPrefixes = new string[] { "234" };
+            if (!validPrefixes.Contains(mobileNumber.Substring(0, 3))) return false;
+            return true;
+        }
+
+        public static string AppendCodeSign(string phone)
+        {
+            if (phone != null && phone[0].ToString() != "+")
+                return "+" + phone;
+            return phone;
+        }
+
+
+        public static string ValidMobile(string mobileNumber)
+        {
+            var err = new List<string>();
+            mobileNumber = AppendCodeSign(mobileNumber);
+            mobileNumber = CleanPhone(mobileNumber);
+            if (!IsValidDialCode(mobileNumber))
+                err.Add("Mobile number has an invalid prefix. please add the dialcode as prefix to the mobile number");
+            if (!IsMobile(mobileNumber))
+                err.Add("Invalid mobile length or Invalid mobile number format; e.g +2348169325634");
+            if (err?.Count > 0)
+                return string.Join(",", err.ToArray());
+            return string.Empty;
+        }
+        public static bool IsMobile(string mobile, string countryCode = "ng")
+        {
+            var isOk = true;
+            mobile = CleanPhone(mobile);
+            switch (countryCode.ToLower())
+            {
+                case "ng":
+                    if (mobile.Length != 13)
+                    {
+                        isOk = false;
+                    }
+                    if (!mobile.StartsWith("234"))
+                    {
+                        isOk = false;
+                    }
+                    break;
+                default:
+                    isOk = false;
+                    break;
+            }
+            return isOk;
         }
 
         /// <summary>

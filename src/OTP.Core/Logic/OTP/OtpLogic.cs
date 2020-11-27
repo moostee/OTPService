@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace OTP.Core.Logic.OTP
@@ -208,7 +209,7 @@ namespace OTP.Core.Logic.OTP
                 entity.ExpiryDate = DateTime.UtcNow.Add(app.ExpiryPeriod);
             }
             entity.AppId = app.Id;
-            entity.OtpCode = 123456;//Convert.ToInt32(StringUtility.GenerateRandomOTP(app.OtpLength));
+            entity.OtpCode = Convert.ToInt32(StringUtility.GenerateRandomOTP(app.OtpLength));
             entity.RecordStatus = Core.Domain.Enum.RecordStatus.Active;
             await Data.Otps.Insert(entity);
             return Factory.Otps.CreateModel(entity);
@@ -229,7 +230,9 @@ namespace OTP.Core.Logic.OTP
         public async Task<OtpModel> ProcessOtpCreation(OtpModel otpModel, App app)
         {
             var model = await Insert(otpModel, app);
-            HasSentOtpBasedOnOtpType(model, app.OtpTypeId);
+            model.EmailSubject = otpModel.EmailSubject == null ? "Skarpa" : otpModel.EmailSubject;
+            model.Body = otpModel.Body;
+            HasSentOtpBasedOnOtpType(model, app);
             return model;
         }
 
@@ -262,47 +265,26 @@ namespace OTP.Core.Logic.OTP
         }
 
 
-        public (bool hasError, string errorMessage) ValidateAppOtpType(OtpModel otpModel, int otpTypeId)
+        public (bool hasError, string errorMessage) ValidateAppOtpType(string email, string phone, int otpTypeId)
         {
             bool hasError = false;
             string errorMessage = string.Empty;
             switch ((OtpTypes)otpTypeId)
             {
                 case OtpTypes.Email:
-                    if (string.IsNullOrWhiteSpace(otpModel.Email))
-                    {
-                        hasError = true;
-                        errorMessage = "Email Address cannot be empty for your Otp type";
-                    }
-                    if (!StringUtility.IsEmail(otpModel.Email))
-                    {
-                        hasError = true;
-                        errorMessage = "Email Address not in the right format"; 
-                    }
+                    if (string.IsNullOrWhiteSpace(email)) return (true, "Email Address cannot be empty for your Otp type");
+                    if (!StringUtility.IsEmail(email)) return (true, "Email Address not in the right format");
                     break;
                 case OtpTypes.PhoneNumber:
-                    if (string.IsNullOrWhiteSpace(otpModel.PhoneNumber))
+                    if (string.IsNullOrWhiteSpace(phone))
                     {
                         hasError = true;
                         errorMessage = "Mobile cannot be empty for your Otp type";
                     }
                     break;
                 case OtpTypes.PhoneNumber_Email:
-                    if (string.IsNullOrWhiteSpace(otpModel.Email) || string.IsNullOrWhiteSpace(otpModel.PhoneNumber))
-                    {
-                        hasError = true;
-                        errorMessage = "Email Address/ Phone Number cannot be empty for your Otp type";
-                    }
-                    if (!StringUtility.IsEmail(otpModel.Email))
-                    {
-                        hasError = true;
-                        errorMessage = "Email Address not in the right format";
-                    }
-                    if (!StringUtility.IsMobile(otpModel.PhoneNumber))
-                    {
-                        hasError = true;
-                        errorMessage = "Mobile is not a valid number";
-                    }
+                    if (string.IsNullOrWhiteSpace(email) && string.IsNullOrWhiteSpace(phone)) return (true, "Email Address And Phone Number cannot be empty for your Otp type");
+                    if (!string.IsNullOrWhiteSpace(email) && !StringUtility.IsEmail(email)) return (true, "Email Address not in the right format");
                     break;
                 default:
                     hasError = true;
@@ -313,30 +295,53 @@ namespace OTP.Core.Logic.OTP
             return (hasError, errorMessage);
         }
 
-        public async void SendEmail(string email, int otp) {
-            var request = new { text = $"Here is your  token {otp}", receiver = email, subject = "Password Reset Token" };
-            await Utilities.MakeApiRequest(Method.POST, $"{Constants.NOTIFICATION_SERVICE_URL}v1/sendmail", JsonConvert.SerializeObject(request));
+        public async Task SendEmail(string email, string emailSubject,string html ,object payload) {
+            //var text = hasExpiry ? $"Here is your token {otp}. It expires {DateTime.UtcNow.AddMinutes(period.TotalMinutes).ToString("dd-MMM-yy HH:mm")}." +
+            //    $"{Environment.NewLine}{body}." : $"Here is your  token {otp}.{Environment.NewLine}{body}.";
+            //var request = new { text, receiver = email, subject = emailSubject };
+            var request = new {html,payload, receiver = email, subject = emailSubject };
+            var response = await Utilities.MakeApiRequest(Method.POST, $"{Constants.NOTIFICATION_SERVICE_URL}v1/sendmail", JsonConvert.SerializeObject(request));
         }
 
-        public async void SendSms(string phone, int otp) {
-            var request = new { message = $"Here is your  token {otp}", receiver = phone};
-            await Utilities.MakeApiRequest(Method.POST, $"{Constants.NOTIFICATION_SERVICE_URL}v1/sms", JsonConvert.SerializeObject(request));
+        public async Task SendSms(string phone, int otp, bool hasExpiry, TimeSpan period, string body) {
+            var text = hasExpiry ? $"Here is your  token {otp}.It expires {DateTime.UtcNow.AddMinutes(period.TotalMinutes).ToString("dd-MMM-yy HH:mm")}." +
+                $"{Environment.NewLine}{body}." : $"Here is your token {otp}.{Environment.NewLine}{body}.";
+            var request = new { message = text , receiver = phone };
+            var response = await Utilities.MakeApiRequest(Method.POST, $"{Constants.NOTIFICATION_SERVICE_URL}v1/sms", JsonConvert.SerializeObject(request));
         }
 
-        public bool HasSentOtpBasedOnOtpType(OtpModel otp, int otpTypeId)
+        public bool HasSentOtpBasedOnOtpType(OtpModel otp,App app)
         {
-            bool status = false;
-            switch ((OtpTypes)otpTypeId)
+            bool status = true;
+            var payload = new
+            {
+                firstname = otp.Firstname,
+                code = otp.OtpCode,
+                hasExpiry = app.HasExpiry,
+                expiryPeriod = DateTime.UtcNow.AddMinutes(app.ExpiryPeriod.TotalMinutes).ToString("dd-MMM-yy HH:mm")
+            };
+            switch ((OtpTypes)app.OtpTypeId)
             {
                 case OtpTypes.Email:
-                    SendEmail(otp.Email,otp.OtpCode);
+                    var thread = new Thread(async() => await SendEmail(otp.Email, otp.EmailSubject, otp.EmailTemplate, payload));
+                    thread.Start();
                     break;
                 case OtpTypes.PhoneNumber:
-                    SendSms(otp.PhoneNumber, otp.OtpCode);
+                    var ttr = new Thread(async () => await SendSms(otp.PhoneNumber, otp.OtpCode, app.HasExpiry, app.ExpiryPeriod, otp.Body));
+                    ttr.Start();
                     break;
                 case OtpTypes.PhoneNumber_Email:
-                    SendEmail(otp.Email, otp.OtpCode);
-                    SendSms(otp.PhoneNumber, otp.OtpCode);
+                    if(otp.Email != null)
+                    {
+                        var t = new Thread(async () => await SendEmail(otp.Email, otp.EmailSubject, otp.EmailTemplate, payload));
+                        t.Start();
+                    }                        
+                    if (otp.PhoneNumber != null)
+                    {
+                        var tr = new Thread(async () => await SendSms(otp.PhoneNumber, otp.OtpCode, app.HasExpiry, app.ExpiryPeriod, otp.Body));
+                        tr.Start();
+                    }                       
+
                     break;
                 default:
                     status = false;

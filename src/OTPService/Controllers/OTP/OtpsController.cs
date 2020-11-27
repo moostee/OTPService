@@ -122,7 +122,7 @@ namespace OTP.Service.Controllers.OTP
                 var appModel = Logic.AppLogic.SearchView("", _clientSecret).Items.FirstOrDefault();
                 var app = Logic.AppLogic.Create(appModel);
                 var model = Logic.OtpLogic.Create(form);
-                var (hasError, errorMessage) = Logic.OtpLogic.ValidateAppOtpType(model, app.OtpTypeId);
+                var (hasError, errorMessage) = Logic.OtpLogic.ValidateAppOtpType(model.Email,model.PhoneNumber, app.OtpTypeId);
                 if (hasError) return BadRequest(Utilities.UnsuccessfulResponse(response, errorMessage));
                 var otpExists = Logic.OtpLogic.Search(app.Id, model.AppFeature, model.PhoneNumber, model.Email, model.DialCode, 0, false).FirstOrDefault();
                 if (otpExists == null)
@@ -218,7 +218,9 @@ namespace OTP.Service.Controllers.OTP
             {
                 var appModel = Logic.AppLogic.SearchView("", _clientSecret).Items.FirstOrDefault();
                 var app = Logic.AppLogic.Create(appModel);
-                var otpExists = Logic.OtpLogic.Search(app.Id, "", "", "", "", otp.OtpCode, false).FirstOrDefault();
+                var (hasError, errorMessage) = Logic.OtpLogic.ValidateAppOtpType(otp.Email, otp.PhoneNumber, app.OtpTypeId);
+                if (hasError) return BadRequest(Utilities.UnsuccessfulResponse(response, errorMessage));
+                var otpExists = Logic.OtpLogic.Search(app.Id, "", otp.PhoneNumber, otp.Email, "", otp.OtpCode, false).FirstOrDefault();
                 if (otpExists == null)
                     return NotFound(Utilities.UnsuccessfulResponse(response,"Otp not found / Otp has been used"));
                 if (app.HasExpiry)

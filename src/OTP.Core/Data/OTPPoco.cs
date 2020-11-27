@@ -58,6 +58,10 @@ namespace OTP.Core.Data
                 x.Column(y => y.RecordStatusText).Ignore();
                 x.Column(y => y.CreatedAtText).Ignore();
                 x.Column(y => y.UpdatedAtText).Ignore();
+                x.Column(y => y.EmailSubject).Ignore();
+                x.Column(y => y.Body).Ignore();
+                x.Column(y => y.Firstname).Ignore();
+                x.Column(y => y.EmailTemplate).Ignore();
             });
 
 

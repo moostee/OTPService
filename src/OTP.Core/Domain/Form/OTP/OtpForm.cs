@@ -23,17 +23,25 @@ namespace OTP.Core.Domain.Form.OTP
         /// 
         /// </summary>
         public string PhoneNumber { get; set; }
-        /// <summary>
-        /// 
-        /// </summary>
-        public string DialCode { get; set; }
+        public string EmailSubject { get; set; }
+        public string Body { get; set; }
+        public string Firstname { get; set; }
+        public string EmailTemplate { get; set; }
 
     }
 
     public class UseOtpForm
     {
         [Required]
-        [Range(1,int.MaxValue)]
+        [Range(1, int.MaxValue)]
         public int OtpCode { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string Email { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string PhoneNumber { get; set; }
     }
 }

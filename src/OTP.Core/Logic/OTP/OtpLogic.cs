@@ -232,6 +232,8 @@ namespace OTP.Core.Logic.OTP
             var model = await Insert(otpModel, app);
             model.EmailSubject = otpModel.EmailSubject == null ? "Skarpa" : otpModel.EmailSubject;
             model.Body = otpModel.Body;
+            model.EmailTemplate = otpModel.EmailTemplate;
+            model.Firstname = otpModel.Firstname;
             HasSentOtpBasedOnOtpType(model, app);
             return model;
         }
@@ -295,19 +297,28 @@ namespace OTP.Core.Logic.OTP
             return (hasError, errorMessage);
         }
 
-        public async Task SendEmail(string email, string emailSubject,string html ,object payload) {
+        public void SendEmail(string email, string emailSubject,string html ,object payload) {
             //var text = hasExpiry ? $"Here is your token {otp}. It expires {DateTime.UtcNow.AddMinutes(period.TotalMinutes).ToString("dd-MMM-yy HH:mm")}." +
             //    $"{Environment.NewLine}{body}." : $"Here is your  token {otp}.{Environment.NewLine}{body}.";
             //var request = new { text, receiver = email, subject = emailSubject };
             var request = new {html,payload, receiver = email, subject = emailSubject };
-            var response = await Utilities.MakeApiRequest(Method.POST, $"{Constants.NOTIFICATION_SERVICE_URL}v1/sendmail", JsonConvert.SerializeObject(request));
+            Log.Info(JsonConvert.SerializeObject(request));
+            var thread = new Thread(async() => {
+                var r = await Utilities.MakeApiRequest(Method.POST, $"{Constants.NOTIFICATION_SERVICE_URL}v1/sendmail", JsonConvert.SerializeObject(request));
+                Log.Info(r.Content);
+            });
+            thread.Start();            
         }
 
-        public async Task SendSms(string phone, int otp, bool hasExpiry, TimeSpan period, string body) {
+        public void SendSms(string phone, int otp, bool hasExpiry, TimeSpan period, string body) {
             var text = hasExpiry ? $"Here is your  token {otp}.It expires {DateTime.UtcNow.AddMinutes(period.TotalMinutes).ToString("dd-MMM-yy HH:mm")}." +
                 $"{Environment.NewLine}{body}." : $"Here is your token {otp}.{Environment.NewLine}{body}.";
             var request = new { message = text , receiver = phone };
-            var response = await Utilities.MakeApiRequest(Method.POST, $"{Constants.NOTIFICATION_SERVICE_URL}v1/sms", JsonConvert.SerializeObject(request));
+            var thread = new Thread(async () => {
+                var r = await Utilities.MakeApiRequest(Method.POST, $"{Constants.NOTIFICATION_SERVICE_URL}v1/sms", JsonConvert.SerializeObject(request));
+                Log.Info(r.Content);
+            });
+            thread.Start();
         }
 
         public bool HasSentOtpBasedOnOtpType(OtpModel otp,App app)
@@ -323,23 +334,19 @@ namespace OTP.Core.Logic.OTP
             switch ((OtpTypes)app.OtpTypeId)
             {
                 case OtpTypes.Email:
-                    var thread = new Thread(async() => await SendEmail(otp.Email, otp.EmailSubject, otp.EmailTemplate, payload));
-                    thread.Start();
+                    SendEmail(otp.Email, otp.EmailSubject, otp.EmailTemplate, payload);
                     break;
                 case OtpTypes.PhoneNumber:
-                    var ttr = new Thread(async () => await SendSms(otp.PhoneNumber, otp.OtpCode, app.HasExpiry, app.ExpiryPeriod, otp.Body));
-                    ttr.Start();
+                    SendSms(otp.PhoneNumber, otp.OtpCode, app.HasExpiry, app.ExpiryPeriod, otp.Body);
                     break;
                 case OtpTypes.PhoneNumber_Email:
                     if(otp.Email != null)
                     {
-                        var t = new Thread(async () => await SendEmail(otp.Email, otp.EmailSubject, otp.EmailTemplate, payload));
-                        t.Start();
+                        SendEmail(otp.Email, otp.EmailSubject, otp.EmailTemplate, payload);
                     }                        
                     if (otp.PhoneNumber != null)
                     {
-                        var tr = new Thread(async () => await SendSms(otp.PhoneNumber, otp.OtpCode, app.HasExpiry, app.ExpiryPeriod, otp.Body));
-                        tr.Start();
+                        SendSms(otp.PhoneNumber, otp.OtpCode, app.HasExpiry, app.ExpiryPeriod, otp.Body);
                     }                       
 
                     break;
